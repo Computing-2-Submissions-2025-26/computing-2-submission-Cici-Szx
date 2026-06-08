@@ -1,5 +1,4 @@
 import {
-  START_BONUS,
   buyProperty,
   createInitialState,
   getCurrentPlayer,
@@ -11,10 +10,13 @@ import {
 } from "./game.js";
 import * as CampusTycoonGame from "./game.js";
 
+// Make the game module visible in browser console for marking/testing.
 window.CampusTycoonGame = CampusTycoonGame;
 
+// The game starts with four fixed players.
 const DEFAULT_PLAYERS = ["Ada", "Grace", "Alan", "Katherine"];
 
+// Get the main parts of the page that need updating.
 const boardElement = document.querySelector("#board");
 const playersElement = document.querySelector("#players");
 const gameLogElement = document.querySelector("#game-log");
@@ -26,11 +28,23 @@ const buyButton = document.querySelector("#buy-button");
 const skipButton = document.querySelector("#skip-button");
 const newGameButton = document.querySelector("#new-game-button");
 
+// This variable stores the whole game state object.
 let state = createInitialState(DEFAULT_PLAYERS);
 
 const formatMoney = (amount) => `£${amount}`;
 
+// Helper functions for showing property owners and colours in the UI.
+const getOwnerName = (ownerId) => state.players.find((player) => player.id === ownerId)?.name ?? "Unowned";
 const getOwner = (ownerId) => state.players.find((player) => player.id === ownerId) ?? null;
+
+const hexToRgba = (hex, alpha) => {
+  const value = hex.replace("#", "");
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+};
 
 const getTileMeta = (tile) => {
   if (tile.type === "property") {
@@ -52,26 +66,6 @@ const getTileMeta = (tile) => {
   return tile.type === "start" ? "Collect a bonus when you land here" : "No cost";
 };
 
-const getTileMetaLabel = (tile) => {
-  if (tile.type === "property") {
-    return `${formatMoney(tile.price)}\nRent ${formatMoney(tile.rent)}`;
-  }
-
-  if (tile.type === "tax") {
-    return `Pay ${formatMoney(tile.amount)}`;
-  }
-
-  if (tile.type === "chance") {
-    return tile.amount >= 0 ? `+${formatMoney(tile.amount)}` : `-${formatMoney(Math.abs(tile.amount))}`;
-  }
-
-  if (tile.type === "bonus") {
-    return `+${formatMoney(tile.amount)}`;
-  }
-
-  return tile.type === "start" ? `+${formatMoney(START_BONUS)}` : "Rest";
-};
-
 const createElement = (tagName, className, textContent = "") => {
   const element = document.createElement(tagName);
   element.className = className;
@@ -79,42 +73,7 @@ const createElement = (tagName, className, textContent = "") => {
   return element;
 };
 
-const getBoardSideCounts = (totalTiles) => {
-  const baseCount = Math.floor(totalTiles / 4);
-  const extraTiles = totalTiles % 4;
-
-  return [0, 1, 2, 3].map((sideIndex) => baseCount + (sideIndex < extraTiles ? 1 : 0));
-};
-
-const getBoardPathRect = (index, totalTiles) => {
-  const [topCount, rightCount, bottomCount, leftCount] = getBoardSideCounts(totalTiles);
-  const ringSize = 20;
-  const rightHeight = 100 - ringSize;
-  const bottomWidth = 100 - ringSize;
-  const leftHeight = 100 - ringSize * 2;
-
-  if (index < topCount) {
-    const width = 100 / topCount;
-    return { side: "top", x: index * width, y: 0, width, height: ringSize };
-  }
-
-  if (index < topCount + rightCount) {
-    const sideIndex = index - topCount;
-    const height = rightHeight / rightCount;
-    return { side: "right", x: 100 - ringSize, y: ringSize + sideIndex * height, width: ringSize, height };
-  }
-
-  if (index < topCount + rightCount + bottomCount) {
-    const sideIndex = index - topCount - rightCount;
-    const width = bottomWidth / bottomCount;
-    return { side: "bottom", x: bottomWidth - (sideIndex + 1) * width, y: 100 - ringSize, width, height: ringSize };
-  }
-
-  const sideIndex = index - topCount - rightCount - bottomCount;
-  const height = leftHeight / leftCount;
-  return { side: "left", x: 0, y: 100 - ringSize - (sideIndex + 1) * height, width: ringSize, height };
-};
-
+// Draws all 25 board tiles from the current game state.
 const renderBoard = () => {
   const currentPlayer = getCurrentPlayer(state);
   boardElement.replaceChildren(
@@ -122,31 +81,31 @@ const renderBoard = () => {
       const owner = getOwner(tile.ownerId);
       const playersOnTile = state.players.filter((player) => player.position === tile.id && !player.bankrupt);
       const hasCurrentPlayer = playersOnTile.some((player) => player.id === currentPlayer.id);
-      const pathRect = getBoardPathRect(index, state.board.length);
+
+      // Classes control tile type, ownership colour, and current player highlight.
       const tileElement = createElement(
         "article",
-        `tile ${pathRect.side}-tile ${tile.type} ${owner ? "owned" : ""} ${hasCurrentPlayer ? "current-tile" : ""}`,
+        `tile ${tile.type} ${owner ? "owned" : ""} ${hasCurrentPlayer ? "current-tile" : ""}`,
       );
 
-      tileElement.style.setProperty("--tile-x", `${pathRect.x}%`);
-      tileElement.style.setProperty("--tile-y", `${pathRect.y}%`);
-      tileElement.style.setProperty("--tile-width", `${pathRect.width}%`);
-      tileElement.style.setProperty("--tile-height", `${pathRect.height}%`);
+      // Owned property tiles use a light tint so the text stays readable.
       if (owner) {
         tileElement.style.setProperty("--owner-color", owner.color);
+        tileElement.style.setProperty("--owner-tint", hexToRgba(owner.color, 0.14));
       }
       tileElement.setAttribute("aria-label", `${tile.name}, ${tile.type}`);
-      tileElement.title = `${tile.name} | ${getTileMeta(tile)}`;
 
-      const startMarkerElement =
-        tile.type === "start" ? createElement("div", "start-marker", "START") : null;
+      const numberElement = createElement("div", "tile-number", String(tile.id));
       const nameElement = createElement("div", "tile-name", tile.name);
-      const metaElement = createElement("div", "tile-meta", getTileMetaLabel(tile));
-      const detailsElement = createElement("div", "tile-details");
+      const metaElement = createElement("div", "tile-meta", getTileMeta(tile));
+      const ownerElement = createElement(
+        "div",
+        "tile-owner",
+        tile.type === "property" ? `Owner: ${getOwnerName(tile.ownerId)}` : tile.type,
+      );
       const tokensElement = createElement("div", "tokens");
 
-      detailsElement.replaceChildren(metaElement);
-
+      // Player tokens are coloured using the player colour stored in game state.
       tokensElement.replaceChildren(
         ...playersOnTile.map((player) => {
           const token = createElement("span", `token ${player.id === currentPlayer.id ? "current" : ""}`, player.name[0]);
@@ -156,17 +115,13 @@ const renderBoard = () => {
         }),
       );
 
-      tileElement.replaceChildren(
-        ...(startMarkerElement ? [startMarkerElement] : []),
-        nameElement,
-        detailsElement,
-        tokensElement,
-      );
+      tileElement.replaceChildren(numberElement, nameElement, metaElement, ownerElement, tokensElement);
       return tileElement;
     }),
   );
 };
 
+// Draws the player information panel on the right side.
 const renderPlayers = () => {
   const currentPlayer = getCurrentPlayer(state);
 
@@ -174,6 +129,8 @@ const renderPlayers = () => {
     ...state.players.map((player) => {
       const properties = getPlayerProperties(state, player.id);
       const propertyNames = properties.map((tile) => tile.name).join(", ") || "None";
+
+      // Bankrupt players are greyed out by CSS.
       const card = createElement(
         "article",
         `player-card ${player.id === currentPlayer.id ? "current" : ""} ${player.bankrupt ? "bankrupt" : ""}`,
@@ -204,6 +161,7 @@ const renderPlayers = () => {
   );
 };
 
+// Shows the latest messages first.
 const renderLog = () => {
   gameLogElement.replaceChildren(
     ...state.gameLog.map((message) => {
@@ -214,6 +172,7 @@ const renderLog = () => {
   );
 };
 
+// Updates turn text, dice text, winner text, and button disabled states.
 const renderStatus = () => {
   const currentPlayer = getCurrentPlayer(state);
   const dice = state.dice;
@@ -228,6 +187,7 @@ const renderStatus = () => {
   skipButton.disabled = state.phase !== "buyDecision";
 };
 
+// Re-render everything after the state changes.
 const render = () => {
   renderBoard();
   renderPlayers();
@@ -235,6 +195,7 @@ const render = () => {
   renderStatus();
 };
 
+// Button events only call the game module, then redraw the page.
 rollButton.addEventListener("click", () => {
   state = takeTurn(state, rollDice());
   render();

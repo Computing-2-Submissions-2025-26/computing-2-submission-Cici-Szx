@@ -21,19 +21,21 @@
  * - getPlayerNetWorth(state, playerId): return cash plus owned property values.
  */
 
-export const STARTING_MONEY = 650;
-export const START_BONUS = 75;
+export const STARTING_MONEY = 1500;
+export const START_BONUS = 200;
 export const PLAYER_COLOURS = ["#e74c3c", "#2e86de", "#27ae60", "#8e44ad"];
 
 const MAX_LOG_ENTRIES = 18;
+
+// These tiles are not properties. All other positions become property tiles.
 const SPECIAL_TILES = {
   0: { name: "Start", type: "start" },
-  4: { name: "Freshers' Fair", type: "chance", amount: 50 },
-  8: { name: "Tuition Fee", type: "tax", amount: 220 },
+  4: { name: "Freshers' Fair", type: "chance", amount: 75 },
+  8: { name: "Tuition Fee", type: "tax", amount: 120 },
   12: { name: "Free Rest", type: "rest" },
-  16: { name: "Campus Gate", type: "bonus", amount: 60 },
-  20: { name: "Printing Crisis", type: "chance", amount: -160 },
-  23: { name: "Society Dues", type: "tax", amount: 240 },
+  16: { name: "Campus Gate", type: "bonus", amount: 100 },
+  20: { name: "Printing Crisis", type: "chance", amount: -50 },
+  23: { name: "Society Dues", type: "tax", amount: 140 },
 };
 const PROPERTY_NAMES = [
   "Library",
@@ -78,6 +80,7 @@ const PROPERTY_NAMES = [
   "Final Project",
 ];
 
+// Makes one property tile object.
 const createProperty = (id, name, price, rent) => ({
   id,
   name,
@@ -87,12 +90,14 @@ const createProperty = (id, name, price, rent) => ({
   ownerId: null,
 });
 
+// Later properties become more expensive and charge more rent.
 const getPropertyDetails = (propertyIndex) => ({
   name: PROPERTY_NAMES[propertyIndex],
-  price: 90 + propertyIndex * 12,
-  rent: 60 + propertyIndex * 8,
+  price: 120 + propertyIndex * 16,
+  rent: 24 + propertyIndex * 3,
 });
 
+// Builds the full 25 tile board.
 const createBoard = () => {
   let propertyIndex = 0;
 
@@ -108,21 +113,25 @@ const createBoard = () => {
   });
 };
 
+// Adds a message to the game log and keeps the log short.
 const addLog = (state, message) => ({
   ...state,
   gameLog: [message, ...state.gameLog].slice(0, MAX_LOG_ENTRIES),
 });
 
+// Updates one player without changing the old state directly.
 const updatePlayer = (state, playerId, updater) => ({
   ...state,
   players: state.players.map((player) => (player.id === playerId ? updater(player) : player)),
 });
 
+// Updates one tile without mutating the original board array.
 const updateTile = (state, tileId, updater) => ({
   ...state,
   board: state.board.map((tile) => (tile.id === tileId ? updater(tile) : tile)),
 });
 
+// When a player is bankrupt, their properties go back to unowned.
 const releasePropertiesForPlayer = (state, playerId) => ({
   ...state,
   board: state.board.map((tile) => (tile.ownerId === playerId ? { ...tile, ownerId: null } : tile)),
@@ -131,6 +140,7 @@ const releasePropertiesForPlayer = (state, playerId) => ({
   ),
 });
 
+// Checks money after a payment and marks the player bankrupt if needed.
 const markBankruptIfNeeded = (state, playerId) => {
   const player = state.players.find(({ id }) => id === playerId);
 
@@ -149,6 +159,7 @@ const markBankruptIfNeeded = (state, playerId) => {
   );
 };
 
+// Positive amount adds money, negative amount removes money.
 const changePlayerMoney = (state, playerId, amount) => {
   const changedState = updatePlayer(state, playerId, (player) => ({
     ...player,
@@ -158,6 +169,7 @@ const changePlayerMoney = (state, playerId, amount) => {
   return markBankruptIfNeeded(changedState, playerId);
 };
 
+// Keeps positions inside the board loop, e.g. 26 becomes 1 on a 25 tile board.
 const normalisePosition = (position, boardLength) => ((position % boardLength) + boardLength) % boardLength;
 
 /**
@@ -247,6 +259,8 @@ export function movePlayer(state, playerId, steps) {
   const oldPosition = player.position;
   const rawPosition = oldPosition + steps;
   const newPosition = normalisePosition(rawPosition, state.board.length);
+
+  // Passing or landing back on Start gives the player bonus money.
   const passedStart = rawPosition >= state.board.length;
   const destination = getTileAtPosition(state, newPosition);
 
@@ -281,6 +295,7 @@ export function resolveTile(state, playerId) {
   const tile = getTileAtPosition(state, player.position);
 
   if (tile.type === "property") {
+    // If no one owns it and the player can afford it, ask the player to buy or skip.
     if (tile.ownerId === null && player.money >= tile.price) {
       return addLog(
         { ...state, phase: "buyDecision" },
@@ -292,10 +307,12 @@ export function resolveTile(state, playerId) {
       return addLog(state, `${player.name} cannot afford ${tile.name}.`);
     }
 
+    // Owned by the same player, so nothing happens.
     if (tile.ownerId === playerId) {
       return addLog(state, `${player.name} visits their own property: ${tile.name}.`);
     }
 
+    // Owned by another player, so rent is paid.
     const owner = state.players.find(({ id }) => id === tile.ownerId);
     const chargedState = changePlayerMoney(state, playerId, -tile.rent);
     const paidState = owner && !owner.bankrupt ? changePlayerMoney(chargedState, owner.id, tile.rent) : chargedState;
@@ -307,6 +324,7 @@ export function resolveTile(state, playerId) {
   }
 
   if (tile.type === "tax") {
+    // Tax tiles take money from the player.
     return addLog(
       changePlayerMoney(state, playerId, -tile.amount),
       `${player.name} pays £${tile.amount} for ${tile.name}.`,
@@ -314,6 +332,7 @@ export function resolveTile(state, playerId) {
   }
 
   if (tile.type === "chance") {
+    // Chance tiles use a fixed amount so the game is easier to test.
     const chanceState = changePlayerMoney(state, playerId, tile.amount);
     const message =
       tile.amount >= 0
@@ -324,6 +343,7 @@ export function resolveTile(state, playerId) {
   }
 
   if (tile.type === "bonus") {
+    // Bonus tiles give extra money.
     return addLog(
       changePlayerMoney(state, playerId, tile.amount),
       `${player.name} collects a £${tile.amount} ${tile.name} bonus.`,
@@ -359,6 +379,7 @@ export function buyProperty(state, playerId) {
     return state;
   }
 
+  // Pay the price, set the tile owner, then add it to the player's property list.
   const paidState = changePlayerMoney(state, playerId, -tile.price);
   const ownedTileState = updateTile(paidState, tile.id, (currentTile) => ({
     ...currentTile,
@@ -415,6 +436,8 @@ export function endTurn(state) {
 
   const playerCount = state.players.length;
   const offsets = Array.from({ length: playerCount }, (_, index) => index + 1);
+
+  // Find the next player who is still active.
   const nextOffset = offsets.find((offset) => {
     const nextIndex = (state.currentPlayerIndex + offset) % playerCount;
     return !state.players[nextIndex].bankrupt;
@@ -445,6 +468,8 @@ export function takeTurn(state, diceRoll) {
   }
 
   const currentPlayer = getCurrentPlayer(state);
+
+  // A turn means move first, then resolve the tile landed on.
   const movedState = movePlayer({ ...state, dice: diceRoll }, currentPlayer.id, diceRoll.total);
   const resolvedState = resolveTile(movedState, currentPlayer.id);
 
