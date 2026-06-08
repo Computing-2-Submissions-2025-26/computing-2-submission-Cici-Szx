@@ -1,9 +1,52 @@
-<!-- In HTML Comments are written like this -->
-<!-- They can all be removed for your apps -->
-<!doctype html> <!-- This first line tells browsers to expect modern standard html 5 -->
-<html lang="en-gb"> <!-- This is indicates the page is written in British English, useful for accessibility -->
-<meta charset="utf-8"> <!-- This indicates how the file is encoded. utf-8 is standard -->
-<title>Your Web-app Title</title> <!-- All pages need a title, this will be displayed in the browser's title bar -->
-<link rel="stylesheet" href="default.css"> <!-- Import style sheet – default.css -->
-<link rel="icon" href="./assets/favicon.png"> <!-- Import 'Favorites Icon' – favicon.png -->
-<script type="module" src="main.js"></script> <!-- Load the main script. Must be type="module". Have only one of these -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Tycoon</title>
+    <link rel="stylesheet" href="default.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Computing 2: Applications</p>
+        <h1>Campus Tycoon</h1>
+      </div>
+      <button id="new-game-button" type="button">New Game</button>
+    </header>
+
+    <main class="game-layout">
+      <section class="board-section" aria-labelledby="board-heading">
+        <h2 id="board-heading">Campus Board</h2>
+        <div id="board" class="board" aria-live="polite"></div>
+      </section>
+
+      <aside class="sidebar" aria-label="Game controls and status">
+        <section class="panel current-turn" aria-labelledby="turn-heading">
+          <h2 id="turn-heading">Current Turn</h2>
+          <p id="turn-status" class="turn-status"></p>
+          <p id="dice-result" class="dice-result">Dice: not rolled yet</p>
+          <p id="winner-message" class="winner-message" aria-live="assertive"></p>
+
+          <div class="controls" aria-label="Turn controls">
+            <button id="roll-button" type="button">Roll Dice</button>
+            <button id="buy-button" type="button">Buy Property</button>
+            <button id="skip-button" type="button">Skip Buying</button>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="players-heading">
+          <h2 id="players-heading">Players</h2>
+          <div id="players" class="players"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="log-heading">
+          <h2 id="log-heading">Game Log</h2>
+          <ol id="game-log" class="game-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+[
+  { "id": "budgeting", "name": "Budgeting", "description": "Useful for deciding whether to buy a property." },
+  { "id": "strategy", "name": "Strategy", "description": "Useful for planning around rent and risk." }
+]

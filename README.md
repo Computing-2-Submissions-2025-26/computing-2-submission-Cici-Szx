@@ -1,53 +1,75 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/H6lPFq0J)
-# Computing 2 Coursework Submission.
-**CID**: [YOUR CID]
+# Campus Tycoon
 
-This is the submission template for your Computing 2 Applications coursework submission.
+Campus Tycoon is a simple traditional Monopoly-style browser game for four players. Players move around a 25-tile rectangular board, buy campus-themed properties, pay rent, collect bonuses, pay taxes, and try to be the last player not bankrupt.
 
-## Checklist
-### Install dependencies locally
-This template relies on a a few packages from the Node Package Manager, npm.
-To install them run the following commands in the terminal.
-```properties
+## How To Run
+
+Install dependencies:
+
+```bash
 npm install
 ```
-These won't be uploaded to your repository because of the `.gitignore`.
-I'll run the same commands when I download your repos.
 
-### Game Module – API
-*You will produce an API specification, i.e. a list of function names and their signatures, for a Javascript module that represents the state of your game and the operations you can perform on it that advances the game or provides information.*
+Run tests:
 
-- [ ] Include a `.js ` module file in `/web-app` containing the API using `jsdoc`.
-- [ ] Update `/jsdoc.json` to point to this module in `.source.include` (line 7)
-- [ ] Compile jsdoc using the run configuration `Generate Docs`
-- [ ] Check the generated docs have compiled correctly.
+```bash
+npm test
+```
 
-### Game Module – Implementation
-*You will implement, in Javascript, the module you specified above. Such that your game can be simulated in code, e.g. in the debug console.*
+Start the web app:
 
-- [ ] The file above should be fully implemented.
+```bash
+npm start
+```
 
-### Unit Tests – Specification
-*For the Game module API you have produced, write a set of unit tests descriptions that specify the expected behaviour of one aspect of your API, e.g. you might pick the win condition, or how the state changes when a move is made.*
+Then open `http://localhost:8001`.
 
-- [ ] Write unit test definitions in `/web-app/tests`.
-- [ ] Check the headings appear in the Testing sidebar.
+## Project Structure
 
-### Unit Tests – Implementation
-*Implement in code the unit tests specified above.*
+```text
+web-app/game.js              Pure game module
+web-app/main.js              DOM rendering and button handling
+web-app/default.css          Styling
+web-app/tests/game.test.js   Mocha unit tests
+web-app/assets/data          Coursework data placeholders
+```
 
-- [ ] Implement the tests above.
+## Game Module API
 
-### Web Application
-*Produce a web application that allows a user to interface with your game module.*
+The game module is in `web-app/game.js`. It is independent from the DOM and can be imported by tests, used by `main.js`, or accessed from the browser console as `window.CampusTycoonGame`.
 
-- Implement in `/web-app`
-  - [ ] `index.html`
-  - [ ] `default.css`
-  - [ ] `main.js`
-  - [ ] Any other files you need to include.
+Main exported functions:
 
-### Finally
-- [ ] Push to GitHub.
-- [ ] Sync the changes.
-- [ ] Check submission on GitHub website.
+- `createInitialState(playerNames)` creates the starting game state for 2 to 4 players.
+- `getCurrentPlayer(state)` returns the active player.
+- `rollDice(randomFn)` rolls two dice. The random function can be injected for tests.
+- `movePlayer(state, playerId, steps)` moves a player around the loop and awards Start bonus money.
+- `resolveTile(state, playerId)` applies the landed tile effect.
+- `buyProperty(state, playerId)` buys an affordable unowned property.
+- `skipBuyProperty(state, playerId)` skips a purchase and ends the turn.
+- `endTurn(state)` advances to the next non-bankrupt player.
+- `takeTurn(state, diceRoll)` performs one roll phase.
+- `checkWinner(state)` returns the winner when only one player remains.
+- `getTileAtPosition(state, position)` returns a tile using loop wrapping.
+- `getPlayerProperties(state, playerId)` returns owned properties.
+- `getPlayerNetWorth(state, playerId)` returns money plus property values.
+
+## Unit Test Specification
+
+The tests focus on behaviour rather than implementation details:
+
+- Initial state creates the correct player count and 25-tile board.
+- `getTileAtPosition` wraps correctly around the loop.
+- Movement wraps around the board.
+- Passing or landing on Start awards money.
+- Landing on an affordable unowned property enters the buy decision phase.
+- Buying a property subtracts money and assigns ownership.
+- Landing on another player's property charges rent.
+- Players become bankrupt when money drops below zero.
+- `endTurn` skips bankrupt players.
+- `checkWinner` detects the last active player.
+- The game module can run without the DOM.
+
+## Design Notes
+
+The implementation keeps rules in `game.js` and rendering in `main.js`. State is represented as plain JavaScript objects, and updates return new state objects where practical. The UI uses a rectangular 25-tile board with clear player colours and visible property ownership.

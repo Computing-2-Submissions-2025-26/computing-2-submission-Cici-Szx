@@ -1,6 +1,7 @@
-/**
- * This is an integration fix, so that Ramda can be imported in the same way
- * both on server and on browser, and also not trip jslint.
- */
-import * as R from "../node_modules/ramda/es/index.js";
-export default R;
+// Small local placeholder for the coursework template.
+// The game uses native array methods and object spread instead of depending on Ramda.
+export const identity = (value) => value;
+export const pipe =
+  (...functions) =>
+  (initialValue) =>
+    functions.reduce((value, fn) => fn(value), initialValue);

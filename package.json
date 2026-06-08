@@ -1,16 +1,15 @@
 {
-  "name": "computing-2-submission",
-  "type": "module",
+  "name": "computing-2-submission-cici-szx",
   "version": "1.0.0",
-  "description": "",
-  "main": "web-app/Module.js",
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "ramda": "^0.32.0"
+  "description": "Campus Tycoon, a simple Monopoly-style JavaScript web app for Computing 2 coursework.",
+  "type": "module",
+  "scripts": {
+    "test": "mocha web-app/tests/game.test.js",
+    "docs": "jsdoc -c jsdoc.json",
+    "start": "python3 -m http.server 8001 --directory web-app"
   },
   "devDependencies": {
-    "docdash": "^2.0.2",
+    "jsdoc": "^4.0.4",
     "mocha": "^11.7.5"
   }
 }
