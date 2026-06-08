@@ -1,6 +1,103 @@
-# Campus Tycoon
+# Computing 2 Submission
 
-Campus Tycoon is a simple traditional Monopoly-style browser game for four players. Players move around a 25-tile rectangular board, buy campus-themed properties, pay rent, collect bonuses, pay taxes, and try to be the last player not bankrupt.
+This folder contains my Computing 2 web application coursework. The project is a JavaScript browser game called **Campus Tycoon**. It is based on a traditional Monopoly-style board game, but simplified so the rules are clear, testable, and suitable for the assignment.
+
+## What Each File Contains
+
+
+
+```text
+README.md
+```
+
+This document. It explains the submission structure, the game idea, the game module API, and the unit tests.
+
+```text
+jsdoc.json
+```
+
+Configuration file for generating JSDoc documentation from `web-app/game.js`.
+
+```text
+package.json
+```
+
+Defines the project name, module type, and useful commands such as `npm test`, `npm start`, and `npm run docs`.
+
+```text
+package-lock.json
+```
+
+Locks the installed npm dependency versions, mainly Mocha and JSDoc.
+
+```text
+web-app/index.html
+```
+
+The main HTML page for the web app. It contains the page structure, board area, player panel, buttons, dice display, winner message, and game log.
+
+```text
+web-app/default.css
+```
+
+The stylesheet for the web app. It controls the rectangular board layout, player cards, buttons, colours, spacing, and responsive layout.
+
+```text
+web-app/main.js
+```
+
+The browser interface code. It renders the board and player information, handles button clicks, and calls functions from `game.js`. It does not contain the main game rules.
+
+```text
+web-app/game.js
+```
+
+The pure game module. It stores the board setup, player setup, game state structure, movement rules, buying rules, rent, tax, chance, bankruptcy, turn order, and winner checking.
+
+```text
+web-app/ramda.js
+```
+
+A small local placeholder file for the template structure. The game mostly uses native JavaScript array methods and object spread instead of an external Ramda dependency.
+
+```text
+web-app/tests/game.test.js
+```
+
+Mocha unit tests for the game module. These tests check game behaviour, not DOM rendering.
+
+```text
+web-app/assets/data/characters.json
+web-app/assets/data/skills.json
+web-app/assets/data/map1.json
+```
+
+Small data files included for the required assets structure. The current game logic is mainly kept in `game.js` to make it easier to test.
+
+```text
+web-app/assets/characters/
+web-app/assets/tiles/
+web-app/assets/ui/
+```
+
+Asset folders kept for the required template structure. They can be used for images or icons if the project is extended.
+
+## Game Overview
+
+Campus Tycoon is a simplified Monopoly-style game with a university campus theme.
+
+- There are 4 default players.
+- The board has 25 rectangular tiles.
+- Players roll two dice and move around the board in a loop.
+- Passing or landing on Start gives bonus money.
+- Most tiles are properties.
+- Players can buy unowned properties if they have enough money.
+- If a player lands on a property owned by another player, they pay rent.
+- Tax tiles remove money.
+- Bonus and chance tiles add or remove money.
+- If a player's money drops below zero, they become bankrupt.
+- Bankrupt players are skipped.
+- The last non-bankrupt player wins.
 
 ## How To Run
 
@@ -22,21 +119,19 @@ Start the web app:
 npm start
 ```
 
-Then open `http://localhost:8001`.
-
-## Project Structure
+Then open:
 
 ```text
-web-app/game.js              Pure game module
-web-app/main.js              DOM rendering and button handling
-web-app/default.css          Styling
-web-app/tests/game.test.js   Mocha unit tests
-web-app/assets/data          Coursework data placeholders
+http://localhost:8001
 ```
 
 ## Game Module API
 
-The game module is in `web-app/game.js`. It is independent from the DOM and can be imported by tests, used by `main.js`, or accessed from the browser console as `window.CampusTycoonGame`.
+The game module is in `web-app/game.js`. It is independent from the DOM and can be imported by tests, used by `main.js`, or accessed from the browser console as:
+
+```js
+window.CampusTycoonGame
+```
 
 Main exported functions:
 
@@ -44,19 +139,21 @@ Main exported functions:
 - `getCurrentPlayer(state)` returns the active player.
 - `rollDice(randomFn)` rolls two dice. The random function can be injected for tests.
 - `movePlayer(state, playerId, steps)` moves a player around the loop and awards Start bonus money.
-- `resolveTile(state, playerId)` applies the landed tile effect.
+- `resolveTile(state, playerId)` applies the effect of the tile the player landed on.
 - `buyProperty(state, playerId)` buys an affordable unowned property.
-- `skipBuyProperty(state, playerId)` skips a purchase and ends the turn.
+- `skipBuyProperty(state, playerId)` skips a property purchase and ends the turn.
 - `endTurn(state)` advances to the next non-bankrupt player.
-- `takeTurn(state, diceRoll)` performs one roll phase.
+- `takeTurn(state, diceRoll)` performs a full dice roll turn.
 - `checkWinner(state)` returns the winner when only one player remains.
 - `getTileAtPosition(state, position)` returns a tile using loop wrapping.
-- `getPlayerProperties(state, playerId)` returns owned properties.
+- `getPlayerProperties(state, playerId)` returns all properties owned by one player.
 - `getPlayerNetWorth(state, playerId)` returns money plus property values.
 
-## Unit Test Specification
+## Unit Test Description
 
-The tests focus on behaviour rather than implementation details:
+The tests are in `web-app/tests/game.test.js`. They focus on behaviour rather than internal implementation.
+
+The tests check:
 
 - Initial state creates the correct player count and 25-tile board.
 - `getTileAtPosition` wraps correctly around the loop.
@@ -70,6 +167,12 @@ The tests focus on behaviour rather than implementation details:
 - `checkWinner` detects the last active player.
 - The game module can run without the DOM.
 
-## Design Notes
+## Implementation Notes
 
-The implementation keeps rules in `game.js` and rendering in `main.js`. State is represented as plain JavaScript objects, and updates return new state objects where practical. The UI uses a rectangular 25-tile board with clear player colours and visible property ownership.
+The main rule I followed is separation of concerns:
+
+- `game.js` contains game state and game rules.
+- `main.js` contains DOM rendering and user interaction.
+- `game.test.js` tests the game module directly.
+
+The game state is represented as plain JavaScript objects, which makes it easier to inspect in tests and in the browser console.
