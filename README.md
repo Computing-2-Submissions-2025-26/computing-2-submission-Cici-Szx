@@ -2,9 +2,33 @@
 
 This folder contains my Computing 2 web application coursework. The project is a JavaScript browser game called **Campus Tycoon**. It is based on a traditional Monopoly-style board game, but simplified so the rules are clear, testable, and suitable for the assignment.
 
+## Submission Structure
+
+```text
+.
+├── README.md
+├── jsdoc.json
+├── package.json
+├── package-lock.json
+└── web-app/
+    ├── index.html
+    ├── default.css
+    ├── main.js
+    ├── game.js
+    ├── ramda.js
+    ├── assets/
+    │   ├── characters/
+    │   ├── data/
+    │   │   ├── characters.json
+    │   │   ├── skills.json
+    │   │   └── map1.json
+    │   ├── tiles/
+    │   └── ui/
+    └── tests/
+        └── game.test.js
+```
+
 ## What Each File Contains
-
-
 
 ```text
 README.md
@@ -28,37 +52,37 @@ Defines the project name, module type, and useful commands such as `npm test`, `
 package-lock.json
 ```
 
-Locks the installed npm dependency versions, mainly Mocha and JSDoc.
+Locks the installed npm dependency versions, mainly Mocha and JSDoc. This should be submitted with `package.json` so the dependency versions are reproducible.
 
 ```text
 web-app/index.html
 ```
 
-The main HTML page for the web app. It contains the page structure, board area, player panel, buttons, dice display, winner message, and game log.
+The main HTML page for the web app. This is the browser entry point. It loads `default.css` and `main.js`.
 
 ```text
 web-app/default.css
 ```
 
-The stylesheet for the web app. It controls the rectangular board layout, player cards, buttons, colours, spacing, and responsive layout.
+The stylesheet for the web app. It controls the board layout, player cards, buttons, colours, spacing, popups, and responsive layout.
 
 ```text
 web-app/main.js
 ```
 
-The browser interface code. It renders the board and player information, handles button clicks, and calls functions from `game.js`. It does not contain the main game rules.
+The browser interface code. It renders the board and player information, handles button clicks, shows popups, and calls functions from `game.js`. It does not contain the main game rules.
 
 ```text
 web-app/game.js
 ```
 
-The pure game module. It stores the board setup, player setup, game state structure, movement rules, buying rules, rent, tax, chance, bankruptcy, turn order, and winner checking.
+The pure game module. It stores the board setup, player setup, game state structure, movement rules, buying rules, rent, cards, special tiles, bankruptcy, turn order, and winner checking.
 
 ```text
 web-app/ramda.js
 ```
 
-A small local placeholder file for the template structure. The game mostly uses native JavaScript array methods and object spread instead of an external Ramda dependency.
+A small local placeholder file from the template structure. The current game uses native JavaScript methods instead of relying on Ramda.
 
 ```text
 web-app/tests/game.test.js
@@ -80,7 +104,7 @@ web-app/assets/tiles/
 web-app/assets/ui/
 ```
 
-Asset folders kept for the required template structure. They can be used for images or icons if the project is extended.
+Asset folders kept for the required template structure. They currently contain placeholder `.gitkeep` files and can be used for images or icons if the project is extended.
 
 ## Game Overview
 
