@@ -40,12 +40,46 @@
           <div id="players" class="players"></div>
         </section>
 
+        <section class="panel trade-panel" aria-labelledby="trade-heading">
+          <h2 id="trade-heading">Property Trade</h2>
+          <div class="trade-form">
+            <label>
+              Seller
+              <select id="trade-seller"></select>
+            </label>
+            <label>
+              Property
+              <select id="trade-property"></select>
+            </label>
+            <label>
+              Buyer
+              <select id="trade-buyer"></select>
+            </label>
+            <label>
+              Price
+              <input id="trade-price" type="number" min="0" step="1" value="0" />
+            </label>
+            <button id="trade-button" type="button">Trade Property</button>
+          </div>
+        </section>
+
         <section class="panel" aria-labelledby="log-heading">
           <h2 id="log-heading">Game Log</h2>
           <ol id="game-log" class="game-log" aria-live="polite"></ol>
         </section>
       </aside>
     </main>
+
+    <dialog id="player-count-dialog" class="setup-dialog" aria-labelledby="setup-heading">
+      <form method="dialog" class="setup-card">
+        <h2 id="setup-heading">How many players?</h2>
+        <div class="setup-options" aria-label="Choose player count">
+          <button value="2" type="submit">2 Players</button>
+          <button value="3" type="submit">3 Players</button>
+          <button value="4" type="submit">4 Players</button>
+        </div>
+      </form>
+    </dialog>
 
     <script type="module" src="main.js"></script>
   </body>
