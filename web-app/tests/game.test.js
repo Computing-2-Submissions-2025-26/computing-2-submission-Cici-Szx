@@ -38,6 +38,12 @@ describe("Campus Tycoon game module", () => {
     assert.equal(state.phase, "roll");
   });
 
+  it("uses player1-style names when no names are provided", () => {
+    const state = createInitialState(["", "  ", ""]);
+
+    assert.deepEqual(state.players.map((player) => player.name), ["player1", "player2", "player3"]);
+  });
+
   it("moves Portfolio Content Overloaded to the nearest Research space", () => {
     const card = FATE_CARDS.find(({ id }) => id === "fate-7");
 

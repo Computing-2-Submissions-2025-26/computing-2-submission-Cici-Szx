@@ -13,7 +13,6 @@ import {
   rollDice,
   skipBuyProperty,
   takeTurn,
-  transferProperty,
   useDrawnCard,
   useHeldCard,
 } from "./game.js";
@@ -23,7 +22,7 @@ import * as CampusTycoonGame from "./game.js";
 window.CampusTycoonGame = CampusTycoonGame;
 
 // The game starts with four fixed players.
-const DEFAULT_PLAYERS = ["Ada", "Grace", "Alan", "Katherine"];
+const DEFAULT_PLAYERS = ["player1", "player2", "player3", "player4"];
 
 // Get the main parts of the page that need updating.
 const boardElement = document.querySelector("#board");
@@ -37,11 +36,6 @@ const buyButton = document.querySelector("#buy-button");
 const skipButton = document.querySelector("#skip-button");
 const newGameButton = document.querySelector("#new-game-button");
 const playerCountDialog = document.querySelector("#player-count-dialog");
-const tradeSellerSelect = document.querySelector("#trade-seller");
-const tradePropertySelect = document.querySelector("#trade-property");
-const tradeBuyerSelect = document.querySelector("#trade-buyer");
-const tradePriceInput = document.querySelector("#trade-price");
-const tradeButton = document.querySelector("#trade-button");
 const shownMoneyEventIds = new Set();
 const shownCardEventIds = new Set();
 const shownTileEventIds = new Set();
@@ -365,46 +359,6 @@ const renderPlayers = () => {
   );
 };
 
-const renderTradePanel = () => {
-  const previousSellerId = Number(tradeSellerSelect.value);
-  const previousPropertyId = Number(tradePropertySelect.value);
-  const previousBuyerId = Number(tradeBuyerSelect.value);
-  const sellers = state.players.filter((player) => !player.bankrupt && getPlayerProperties(state, player.id).length > 0);
-  const selectedSeller = sellers.find((player) => player.id === previousSellerId) ?? sellers[0] ?? null;
-  const sellerProperties = selectedSeller ? getPlayerProperties(state, selectedSeller.id) : [];
-  const selectedProperty =
-    sellerProperties.find((property) => property.id === previousPropertyId) ?? sellerProperties[0] ?? null;
-  const buyers = state.players.filter((player) => !player.bankrupt && player.id !== selectedSeller?.id);
-  const selectedBuyer = buyers.find((player) => player.id === previousBuyerId) ?? buyers[0] ?? null;
-
-  fillSelect(
-    tradeSellerSelect,
-    sellers.map((player) => ({ value: player.id, label: player.name })),
-    selectedSeller?.id,
-  );
-  fillSelect(
-    tradePropertySelect,
-    sellerProperties.map((property) => ({ value: property.id, label: property.name })),
-    selectedProperty?.id,
-  );
-  fillSelect(
-    tradeBuyerSelect,
-    buyers.map((player) => ({ value: player.id, label: player.name })),
-    selectedBuyer?.id,
-  );
-
-  if (selectedProperty && (!tradePriceInput.value || Number(tradePriceInput.value) < 0)) {
-    tradePriceInput.value = String(selectedProperty.price);
-  }
-
-  const canTrade = state.phase !== "gameOver" && selectedSeller && selectedProperty && selectedBuyer;
-  tradeSellerSelect.disabled = !canTrade;
-  tradePropertySelect.disabled = !canTrade;
-  tradeBuyerSelect.disabled = !canTrade;
-  tradePriceInput.disabled = !canTrade;
-  tradeButton.disabled = !canTrade;
-};
-
 // Shows the latest messages first.
 const renderLog = () => {
   gameLogElement.replaceChildren(
@@ -533,7 +487,6 @@ const renderStatus = () => {
 const render = () => {
   renderBoard();
   renderPlayers();
-  renderTradePanel();
   renderLog();
   renderStatus();
   renderMoneyPopups();
@@ -599,27 +552,6 @@ discardChanceButton.addEventListener("click", () => {
 
 endTurnButton.addEventListener("click", () => {
   state = finishTurn(state);
-  render();
-});
-
-tradeSellerSelect.addEventListener("change", () => {
-  tradePriceInput.value = "";
-  renderTradePanel();
-});
-
-tradePropertySelect.addEventListener("change", () => {
-  const tile = state.board.find(({ id }) => id === Number(tradePropertySelect.value));
-  tradePriceInput.value = tile ? String(tile.price) : "0";
-});
-
-tradeButton.addEventListener("click", () => {
-  state = transferProperty(
-    state,
-    Number(tradeSellerSelect.value),
-    Number(tradeBuyerSelect.value),
-    Number(tradePropertySelect.value),
-    Number(tradePriceInput.value),
-  );
   render();
 });
 

@@ -401,7 +401,7 @@ export function createInitialState(playerNames) {
 
   const players = playerNames.map((name, index) => ({
     id: index + 1,
-    name: name.trim() || `Player ${index + 1}`,
+    name: name.trim() || `player${index + 1}`,
     color: PLAYER_COLOURS[index],
     position: 0,
     money: STARTING_MONEY,
@@ -607,7 +607,6 @@ export function resolveTile(state, playerId) {
   const tile = getTileAtPosition(state, player.position);
 
   if (tile.type === "property") {
-    // If no one owns it and the player can afford it, ask the player to buy or skip.
     if (tile.ownerId === null && player.money >= tile.price) {
       const message = `${player.name} may buy ${tile.name} for £${tile.price}.`;
       return addLog(
@@ -737,7 +736,6 @@ export function buyProperty(state, playerId) {
     return state;
   }
 
-  // Pay the price, set the tile owner, then add it to the player's property list.
   const paidState = changePlayerMoney(state, playerId, -tile.price);
   const ownedTileState = updateTile(paidState, tile.id, (currentTile) => ({
     ...currentTile,
@@ -1080,8 +1078,8 @@ export function endTurn(state) {
 /**
  * Performs a complete roll phase for the current player.
  *
- * If the player lands on an affordable unowned property, the state pauses in
- * the "buyDecision" phase. Otherwise the turn is ended automatically.
+ * If the player lands on a property, the turn continues into the normal end-of-turn
+ * flow without a separate purchase decision.
  *
  * @param {object} state - Current game state.
  * @param {{die1: number, die2: number, total: number}} diceRoll - Dice result.
